@@ -1,4 +1,14 @@
+# Node modules
 node_modules/
+
+# Env files
 .env
+
+# Build outputs / uploads
+uploads/
+dist/
+build/
+
+# Logs and OS files
 npm-debug.log*
 .DS_Store
