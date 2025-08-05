@@ -8,19 +8,15 @@ const errorHandler = require('./middleware/error.middleware').errorHandler;
 
 const app = express();
 
-// ✅ Allow frontend domain (vercel app)
-app.use(cors({
-  origin: ['https://campus-talent-front-end-f28i.vercel.app'],
-  credentials: true,
-}));
 
 // Enable CORS for your React app 
 const allowedOrigins = [
   process.env.CLIENT_URL,
   'http://localhost:3000',
-  'http://localhost:5000'
+  'http://localhost:5000',
+  'https://campus-talent-front-end-f28i.vercel.app'
 ].filter(Boolean);
-   
+
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
@@ -28,7 +24,7 @@ app.use(cors({
       return callback(null, true);
     }
     callback(new Error(`CORS policy: origin ${origin} not allowed`));
-  }, 
+  },
   credentials: true
 }));
   
