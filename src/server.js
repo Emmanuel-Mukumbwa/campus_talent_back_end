@@ -35,15 +35,6 @@ app.use(
   express.static(path.join(__dirname, 'uploads'))
 );
   
-// Serve React build assets
-const clientBuildPath = path.join(__dirname, '..', '..', 'campus-talent-frontend', 'build');
-app.use(express.static(clientBuildPath));
-
-// For any non-API route, send back React’s index.html
-app.get(/^\/(?!api).*/, (req, res) => { 
-  res.sendFile(path.join(clientBuildPath, 'index.html'));
-});
-//─────────────────────
  
 // Mount all API routes under /api 
 app.use('/api', routes); 
@@ -56,3 +47,4 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server listening on http://localhost:${PORT}`);
 });
+
