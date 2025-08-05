@@ -8,35 +8,35 @@ const errorHandler = require('./middleware/error.middleware').errorHandler;
 
 const app = express();
 
-// ✅ Define allowed origins
+// ✅ Only allow known trusted origins
 const allowedOrigins = [
-  process.env.CLIENT_URL,
   'http://localhost:3000',
   'http://localhost:5000',
   'https://campus-talent-front-end-f28i.vercel.app'
-].filter(Boolean);
+];
 
-// ✅ Apply CORS middleware at the top
+// ✅ Configure CORS
 app.use(cors({
   origin: (origin, callback) => {
     console.log('🔐 CORS request from:', origin);
-    if (!origin) return callback(null, true); // Allow non-browser requests like Postman
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    callback(new Error(`CORS policy: origin ${origin} not allowed`));
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS policy: origin ${origin} not allowed`));
   },
   credentials: true
 }));
 
-// ✅ Handle preflight OPTIONS requests for all routes
+// ✅ Handle preflight requests
 app.options('*', cors());
 
 // ✅ Parse JSON request bodies
 app.use(express.json());
 
-// ✅ Serve static uploaded files
+// ✅ Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ✅ Mount your API routes under /api
+// ✅ Mount all API routes under /api
 app.use('/api', routes);
 
 // ✅ Global error handler
