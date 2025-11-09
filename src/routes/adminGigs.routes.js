@@ -1,5 +1,4 @@
-
-
+//server/routes/adminGigs.routes.js
 const express            = require('express'); 
 const { authenticate }   = require('../middleware/auth.middleware');
 const { authorizeAdmin } = require('../middleware/admin.middleware');
