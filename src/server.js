@@ -1,3 +1,4 @@
+// File: src/server.js
 require('dotenv').config();
 const express = require('express');
 const cors    = require('cors');
@@ -13,64 +14,84 @@ function errorHandler(err, req, res, next) {
 
 const app = express();
 
-// Only allow known trusted origins
-const allowedOrigins = [
+// ================================
+// CORS Configuration
+// ================================
+
+// List of explicitly allowed origins
+const explicitOrigins = [
   'http://localhost:3000',
   'http://localhost:5000',
   'https://campus-talent-front-end-f28i.vercel.app'
 ];
 
-// Helper to strip trailing slash
+// Helper to strip trailing slash from an origin string
 function normalize(origin) {
   if (!origin) return origin;
   return origin.endsWith('/') ? origin.slice(0, -1) : origin;
 }
 
+// Determine if an origin is allowed
+function isOriginAllowed(origin) {
+  if (!origin) return true; // allow non-browser requests (like Postman, server-to-server)
+
+  const norm = normalize(origin);
+
+  // 1) Check against explicit list
+  if (explicitOrigins.includes(norm)) return true;
+
+  // 2) Allow all Vercel preview URLs that match the pattern
+  //    Example: https://campus-talent-front-end-f28i-abcdef123.vercel.app
+  if (
+    norm.startsWith('https://campus-talent-front-end-f28i-') &&
+    norm.endsWith('.vercel.app')
+  ) {
+    return true;
+  }
+
+  // 3) (Optional) Allow any other pattern you may need, e.g., localhost with ports
+  //    Already covered by explicit list for :3000 and :5000
+
+  return false;
+}
+
 const corsOptions = {
   origin: (origin, callback) => {
     console.log('🔐 CORS request from:', origin);
-    if (!origin) {
-      // Allow non-browser or same-origin requests
-      return callback(null, true);
+    if (isOriginAllowed(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS policy: origin ${origin} not allowed`));
     }
-    const norm = normalize(origin);
-    const match = allowedOrigins.some(allowed =>
-      norm === allowed || norm.startsWith(allowed)
-    );
-    if (match) {
-      return callback(null, true);
-    }
-    return callback(new Error(`CORS policy: origin ${origin} not allowed`));
   },
   credentials: true,
   optionsSuccessStatus: 200,
 };
 
-// 1) Apply CORS globally (before any other middleware)
+// Apply CORS middleware globally
 app.use(cors(corsOptions));
-
-// 2) Preflight handling
+// Handle preflight requests
 app.options('*', cors(corsOptions));
 
-// 3) Health-check endpoint to verify CORS is working
+// Health-check endpoint to verify CORS is working
 app.get('/ping', (req, res) => {
   res.send('pong');
 });
 
-// 4) Body parser
+// Body parser
 app.use(express.json());
 
-// 5) Static uploads
+// Static uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// 6) Mount API
+// Mount API routes
 app.use('/api', routes);
 
-// 7) Global error handler
+// Global error handler
 app.use(errorHandler);
 
-// 8) Start server
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server listening on http://localhost:${PORT}`);
-}); 
+});
